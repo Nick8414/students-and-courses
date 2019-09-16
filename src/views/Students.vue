@@ -10,6 +10,21 @@
       <i class="material-icons vertical-align-middle">add</i>
     </AppButton>
 
+     
+      
+      <div class="input-group mb-2">
+        <div class="input-group-prepend">
+          <div class="input-group-text"><i class="material-icons vertical-align-middle">search</i></div>
+        </div>
+        <input type="text" v-model="searchQuery" class="form-control" id="inlineFormInputGroup" placeholder="Search...">
+      </div>
+
+      <select v-model="quantity" class="custom-select mr-sm-2" id="inlineFormCustomSelect">
+        <option  selected v-for="num in [1,2,3,4,5]" :key="num" >{{num}}</option>
+        
+      </select>
+    
+
     <strong>Users</strong>
     <AppModal
       v-if="showModal"
@@ -18,10 +33,12 @@
       @newRecord = "saveUser"
     />
     <AppTable
-      :users="users"
+      :users="filteredUsers"
       @editUser="editUser"
       @deleteUser="deleteUser"
     />
+
+    
    
   </div>
 </template>
@@ -42,6 +59,7 @@ console.warn('IndexedDB  supported')
   import AppButton from "@/components/UIComponents/AppButton";
   import AppModal from "@/components/AppModal";
   import AppTable from "@/components/Table/AppTable";
+  import AppPAgination from "@/components/AppPagination";
 
   import { openDB, deleteDB } from 'idb';
 import { async } from 'q';
@@ -120,7 +138,9 @@ demo();
           email : '',
           status: ''
         },
-        users: []
+        users: [],
+        searchQuery: '',
+        quantity: 5
       }
     },
 
@@ -128,6 +148,32 @@ demo();
       AppButton,
       AppModal,
       AppTable
+    },
+
+    computed: {
+      filteredUsers() {
+        if (this.searchQuery === '') {
+          return this.users.sort((a,b) => {
+           //return (a.name > b.name) ? 1 : ((b.name > a.name) ? -1 : 0)
+           return (b.name > a.name) ? 1 : ((a.name > b.name) ? -1 : 0)
+          }).slice(0,this.quantity) ;
+        } else {
+          const filteredUsers = this.users.filter(row=>{
+            console.log(row);
+            // return Object.keys(row).some(key=>{
+            //   console.log(key)
+            //   return String(row[key]).toLowerCase().indexOf(this.searchQuery) > -1
+            // })
+            return row.name.toLowerCase().indexOf(this.searchQuery) > -1;
+         
+          })
+           // return String(el.name) === String(this.searchQuery )
+          return filteredUsers;
+        }
+
+
+        
+      }
     },
 
     mounted() {
