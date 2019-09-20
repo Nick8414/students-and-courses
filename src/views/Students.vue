@@ -11,18 +11,14 @@
     </AppButton>
 
      
-      
-      <div class="input-group mb-2">
-        <div class="input-group-prepend">
-          <div class="input-group-text"><i class="material-icons vertical-align-middle">search</i></div>
-        </div>
-        <input type="text" v-model="searchQuery" class="form-control" id="inlineFormInputGroup" placeholder="Search...">
-      </div>
+      <AppSearchInput 
+        v-model="searchQuery"
+      />
 
-      <select v-model="quantity" class="custom-select mr-sm-2" id="inlineFormCustomSelect">
-        <option  selected v-for="num in [1,2,3,4,5]" :key="num" >{{num}}</option>
-        
-      </select>
+     <AppSelect 
+      :pageSize="pageSize"
+      @changePageSize="changePageSize"
+    />
     
 
     <strong>Users</strong>
@@ -37,6 +33,10 @@
       @editUser="editUser"
       @deleteUser="deleteUser"
     />
+    <AppPagination
+      :pageCount="pageCount"
+      @changePage="changeCurrentPage"
+     />
 
     
    
@@ -59,7 +59,9 @@ console.warn('IndexedDB  supported')
   import AppButton from "@/components/UIComponents/AppButton";
   import AppModal from "@/components/AppModal";
   import AppTable from "@/components/Table/AppTable";
-  import AppPAgination from "@/components/AppPagination";
+  import AppPagination from "@/components/AppPagination";
+  import AppSelect from "@/components/UIComponents/AppSelect";
+  import AppSearchInput from "@/components/UIComponents/AppSearchInput";
 
   import { openDB, deleteDB } from 'idb';
 import { async } from 'q';
@@ -140,23 +142,36 @@ demo();
         },
         users: [],
         searchQuery: '',
-        quantity: 5
+        pageSize: 5,
+        currentPage:0
       }
     },
 
     components: {
       AppButton,
       AppModal,
-      AppTable
+      AppTable,
+      AppPagination,
+      AppSelect,
+      AppSearchInput
     },
 
     computed: {
       filteredUsers() {
+        const start = this.currentPage * this.pageSize;
+        const end = Number(start) + Number(this.pageSize);
+        
+        console.log('start', start);
+        console.log('end', end);
+
+
         if (this.searchQuery === '') {
           return this.users.sort((a,b) => {
            //return (a.name > b.name) ? 1 : ((b.name > a.name) ? -1 : 0)
            return (b.name > a.name) ? 1 : ((a.name > b.name) ? -1 : 0)
-          }).slice(0,this.quantity) ;
+          }).slice(start, end);
+
+
         } else {
           const filteredUsers = this.users.filter(row=>{
             console.log(row);
@@ -173,6 +188,14 @@ demo();
 
 
         
+      },
+
+      pageCount() {
+        let l = this.users.length, 
+            s=this.pageSize;
+            console.log(l);
+            console.log(s);
+        return Math.ceil(l/s);
       }
     },
 
@@ -189,6 +212,14 @@ demo();
     },
 
     methods: {
+      changePageSize(pageSize) {
+        console.log('page size',pageSize)
+        this.pageSize = pageSize;
+      },
+      changeCurrentPage(page) {
+        console.log(page)
+        this.currentPage = page;
+      },
       clicked () {
         console.log('clicked')
       },
